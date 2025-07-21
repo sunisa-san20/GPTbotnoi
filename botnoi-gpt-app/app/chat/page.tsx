@@ -370,11 +370,11 @@ const handleToggleMic = () => {
             {showAttachOptions && (
               <div className="absolute bottom-10 left-0 w-36 bg-white border rounded shadow-md z-10">
                 <label className="block px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                  📎 แนบไฟล์
+                  📎Attach file
                   <input type="file" className="hidden" onChange={handleFileUpload} />
                 </label>
                 <label className="block px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                  🖼️ แนบรูปภาพ
+                  🖼️ Attach photo
                   <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
                 </label>
               </div>
@@ -386,7 +386,7 @@ const handleToggleMic = () => {
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-            placeholder="พิมพ์ข้อความ..."
+            placeholder="Type a message..."
             className="flex-1 px-3 py-2 bg-transparent border-none outline-none"
           />
 
@@ -401,7 +401,7 @@ const handleToggleMic = () => {
       </div>
     </div>
   )
-  
+
   // หน้า ChatLanding
   const ChatLanding = () => (
   <div className="flex-1 bg-white flex flex-col">
@@ -427,7 +427,7 @@ const handleToggleMic = () => {
       {/* แสดงข้อความเมื่อเริ่ม New Chat */}
       {isNewChat && (
         <p className="text-gray-500 text-sm mt-4">
-          เริ่มต้นการแชทใหม่กับ Botnoi GPT
+          Start a new chat with Botnoi GPT
         </p>
       )}
     </div>
@@ -442,11 +442,11 @@ const handleToggleMic = () => {
           {showAttachOptions && (
             <div className="absolute bottom-10 left-0 w-36 bg-white border rounded shadow-md z-10">
               <label className="block px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                📎 แนบไฟล์
+                📎 Attach file
                 <input type="file" className="hidden" onChange={handleFileUpload} />
               </label>
               <label className="block px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                🖼️ แนบรูปภาพ
+                🖼️ Attach photo
                 <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
               </label>
             </div>
@@ -458,7 +458,7 @@ const handleToggleMic = () => {
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-          placeholder="พิมพ์ข้อความ..."
+          placeholder="Type a message..."
           className="flex-1 px-3 py-2 bg-transparent border-none outline-none"
         />
 
