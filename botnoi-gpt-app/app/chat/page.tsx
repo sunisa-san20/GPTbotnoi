@@ -16,6 +16,7 @@ import {
 } from "lucide-react"
 
 import { useState } from "react"
+import { MoreVertical } from "lucide-react"
 
 const BotnaiGPTIcon = () => (
   <div className="w-20 h-20 rounded-full bg-gradient-to-b from-white to-cyan-100 shadow-lg flex items-center justify-center">
@@ -28,7 +29,7 @@ const BotnaiGPTIcon = () => (
 export default function ChatPage() {
   const [message, setMessage] = useState("")
   const [isChatPanelOpen, setIsChatPanelOpen] = useState(true)
-  const [currentView, setCurrentView] = useState<"landing" | "chat" | "profile" | "folder">("landing")
+  const [currentView, setCurrentView] = useState<"landing" | "chat" | "profile" | "folder" | "History">("landing")
   const [messages, setMessages] = useState([
     { id: 1, text: "How are you doing?", sender: "user" },
     { id: 2, text: "Hi, I'm doing well !", sender: "bot" },
@@ -64,7 +65,8 @@ export default function ChatPage() {
   }
   setChats((prev) => [newChat, ...prev])
   setSelectedChatId(newChat.id)
-  setCurrentView("chat") // เปิดหน้าต่าง chat ใหม่
+  setCurrentView("landing")  // กลับไปหน้า landing
+  setIsNewChat(true)         // ระบุว่าเริ่มแชทใหม่
 }
 
 const handleRename = (id: string) => {
@@ -95,6 +97,18 @@ const handleSaveToFolder = (id: string) => {
   alert("Save to folder: " + id)
   setDropdownOpenId(null)
 }
+
+// สำหรับหน้า Folder
+const [folders, setFolders] = useState<string[]>(["Work", "Personal"])
+const [folderSearch, setFolderSearch] = useState("")
+const handleAddFolder = () => {
+  const name = prompt("Enter new folder name:")
+  if (name && !folders.includes(name)) {
+    setFolders((prev) => [...prev, name])
+  }
+}
+// ตรวจสอบว่าแชทที่เลือกคือ new chat
+const [isNewChat, setIsNewChat] = useState(false)
 
   const handleSendMessage = () => {
     if (newMessage.trim()) {
@@ -257,9 +271,31 @@ const handleSaveToFolder = (id: string) => {
             <div className="w-4 h-4 border border-gray-300 rounded"></div>
           </div>
         </div>
-        <div className="flex items-center space-x-4">
-          <MoreHorizontal className="w-5 h-5 text-gray-400" />
+        {/* ปรับเมนูจุด 3 จุดแนวตั้ง */}
+        <div className="relative">
+          <button
+            onClick={() => setDropdownOpenId("chat-menu")}
+            className="p-1 rounded hover:bg-gray-100"
+          >
+            <MoreVertical className="w-5 h-5 text-gray-400" />
+          </button>
+
+          {dropdownOpenId === "chat-menu" && (
+            <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded shadow z-10">
+              <button className="w-full text-left px-4 py-2 hover:bg-gray-100">Archive</button>
+              <button
+                className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                onClick={() => setCurrentView("History")}
+              >
+                History
+              </button>
+              <button className="w-full text-left px-4 py-2 hover:bg-gray-100" onClick={() => alert("Link copied!")}>
+                Share
+              </button>
+            </div>
+          )}
         </div>
+
       </div>
 
       {/* Messages */}
@@ -297,42 +333,51 @@ const handleSaveToFolder = (id: string) => {
   )
 
   const ChatLanding = () => (
-    <div className="flex-1 bg-white flex flex-col">
-      {/* Header */}
-      <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-cyan-500 rounded-full flex items-center justify-center">
-            <div className="text-white text-sm">🤖</div>
-          </div>
-          <span className="text-base font-medium text-gray-900">Botnoi GPT</span>
+  <div className="flex-1 bg-white flex flex-col">
+    {/* Header */}
+    <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+      <div className="flex items-center space-x-3">
+        <div className="w-12 h-12 bg-white rounded-full overflow-hidden">
+          <img src="/botnoi_logo.jpg" alt="Botnoi Logo" className="w-full h-full object-cover" />
         </div>
-        <div className="text-sm text-gray-400">•••</div>
+        <span className="text-base font-medium text-gray-900">Botnoi GPT</span>
       </div>
+      <MoreVertical className="w-5 h-5 text-gray-400" />
+    </div>
 
-      {/* Main Chat Content */}
-      <div className="flex-1 flex flex-col items-center justify-center space-y-6 p-8">
-        <BotnaiGPTIcon />
-        <h1 className="text-3xl font-bold text-gray-900">Botnoi GPT</h1>
-        <div className="w-16 h-1 bg-cyan-500 rounded-full"></div>
+    {/* Main Chat Content */}
+    <div className="flex-1 flex flex-col items-center justify-center space-y-6 p-8">
+      <div className="w-24 h-24 rounded-full shadow-lg overflow-hidden">
+        <img src="/botnoi_logo.jpg" alt="Botnoi Logo" className="w-full h-full object-cover" />
       </div>
+      <h1 className="text-3xl font-bold text-gray-900">Botnoi GPT</h1>
+      <div className="w-16 h-1 bg-cyan-500 rounded-full"></div>
 
-      {/* Input Area */}
-      <div className="p-4 border-t border-gray-100">
-        <div className="flex items-center space-x-3 bg-gray-50 rounded-xl px-4 py-3">
-          <Plus className="w-5 h-5 text-gray-500 cursor-pointer hover:text-gray-700" />
-          <input
-            type="text"
-            placeholder="Type your message here..."
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            className="flex-1 bg-transparent border-none outline-none text-gray-700 placeholder-gray-500"
-          />
-          <Mic className="w-5 h-5 text-gray-500 cursor-pointer hover:text-gray-700" />
-          <Send className="w-5 h-5 text-cyan-500 cursor-pointer hover:text-cyan-600" />
-        </div>
+      {/* แสดงข้อความเมื่อเริ่ม New Chat */}
+      {isNewChat && (
+        <p className="text-gray-500 text-sm mt-4">
+          เริ่มต้นการแชทใหม่กับ Botnoi GPT
+        </p>
+      )}
+    </div>
+
+    {/* Input Area */}
+    <div className="p-4 border-t border-gray-100">
+      <div className="flex items-center space-x-3 bg-gray-50 rounded-xl px-4 py-3">
+        <Plus className="w-5 h-5 text-gray-500 cursor-pointer hover:text-gray-700" />
+        <input
+          type="text"
+          placeholder="Type your message here..."
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          className="flex-1 bg-transparent border-none outline-none text-gray-700 placeholder-gray-500"
+        />
+        <Mic className="w-5 h-5 text-gray-500 cursor-pointer hover:text-gray-700" />
+        <Send className="w-5 h-5 text-cyan-500 cursor-pointer hover:text-cyan-600" />
       </div>
     </div>
-  )
+  </div>
+)
 
   if (currentView === "profile") {
     return (
@@ -449,8 +494,9 @@ const handleSaveToFolder = (id: string) => {
       </div>
     </div>
 
+      {/* Chat List Panel */}
 
-            {isChatPanelOpen && (
+      {isChatPanelOpen && (
         <div className="w-[185px] bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ease-in-out">
           <div className="p-3 border-b border-gray-100">
             <div className="flex items-center justify-between mb-3">
@@ -510,25 +556,25 @@ const handleSaveToFolder = (id: string) => {
                           onClick={() => handleRename(chat.id)}
                           className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                         >
-                          Change name
+                          ✏️Change name
                         </button>
                         <button
                           onClick={() => handleDelete(chat.id)}
                           className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                         >
-                          Delete
+                          🗑️Delete
                         </button>
                         <button
                           onClick={() => handlePin(chat.id)}
                           className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                         >
-                          Pin
+                          📌Pin
                         </button>
                         <button
                           onClick={() => handleSaveToFolder(chat.id)}
                           className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                         >
-                          Save in folder
+                          📁Save in folder
                         </button>
                       </div>
                     )}
@@ -542,7 +588,45 @@ const handleSaveToFolder = (id: string) => {
       {/* Main Chat Area */}
       {currentView === "landing" && <ChatLanding />}
       {currentView === "chat" && <ChatView />}
-      {currentView === "folder" && <div className="flex-1 flex items-center justify-center text-gray-500">Folder Page</div>}
+      {/* View ของ Folder */}
+      {currentView === "folder" && (
+        <div className="flex-1 p-6 bg-white overflow-y-auto">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-gray-800">Folders</h2>
+            <button
+              onClick={handleAddFolder}
+              className="px-3 py-1 bg-cyan-500 text-white text-sm rounded hover:bg-cyan-600"
+            >
+              + Add Folder
+            </button>
+          </div>
+
+          {/* Search */}
+          <div className="mb-4">
+            <input
+              type="text"
+              placeholder="Search folders..."
+              value={folderSearch}
+              onChange={(e) => setFolderSearch(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-cyan-400"
+            />
+          </div>
+
+          {/* Folder list */}
+          <ul className="space-y-2">
+            {folders
+              .filter((f) => f.toLowerCase().includes(folderSearch.toLowerCase()))
+              .map((folder, idx) => (
+                <li
+                  key={idx}
+                  className="px-4 py-2 bg-gray-100 rounded hover:bg-gray-200 cursor-pointer"
+                >
+                  📁 {folder}
+                </li>
+              ))}
+          </ul>
+        </div>
+      )}
 
       <SettingsModal />
     </div> 
