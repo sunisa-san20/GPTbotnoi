@@ -18,10 +18,11 @@ import {
 import { useState } from "react"
 import { MoreVertical } from "lucide-react"
 
+// หน้า get start
 const BotnaiGPTIcon = () => (
   <div className="w-20 h-20 rounded-full bg-gradient-to-b from-white to-cyan-100 shadow-lg flex items-center justify-center">
-    <div className="w-12 h-12 bg-cyan-500 rounded-full flex items-center justify-center">
-      <div className="text-white text-2xl">🤖</div>
+    <div className="w-12 h-12 bg-white rounded-full overflow-hidden">
+      <img src="/botnoi_logo.jpg" alt="Botnoi Logo" className="w-full h-full object-cover" />
     </div>
   </div>
 )
@@ -134,9 +135,10 @@ const [isNewChat, setIsNewChat] = useState(false)
         <div className="bg-white rounded-lg p-6 w-96">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-cyan-500 rounded-full flex items-center justify-center">
-                <div className="text-white text-sm">🤖</div>
+              <div className="w-12 h-12 bg-white rounded-full overflow-hidden">
+                <img src="/botnoi_logo.jpg" alt="Botnoi Logo" className="w-full h-full object-cover" />
               </div>
+
               <span className="font-medium">Botnoi</span>
             </div>
             <div className="flex items-center space-x-2">
@@ -379,51 +381,138 @@ const [isNewChat, setIsNewChat] = useState(false)
   </div>
 )
 
+  // Sidebar หน้า Profile
   if (currentView === "profile") {
     return (
       <div className="h-screen bg-gray-50 flex overflow-hidden">
         {/* Sidebar */}
         <div className="w-[58px] bg-gradient-to-b from-cyan-400 to-blue-500 flex flex-col items-center py-4 space-y-4">
-          <div className="relative">
+          {/* Chat */}
+          <div className="flex flex-col items-center cursor-pointer">
             <button
-              onClick={() => setIsChatPanelOpen(!isChatPanelOpen)}
-              className={`w-10 h-10 rounded-lg flex items-center justify-center cursor-pointer transition-colors ${
-                isChatPanelOpen ? "bg-white/30" : "bg-white/20"
-              } hover:bg-white/30`}
+              onClick={() => setCurrentView("landing")}
+              className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center hover:bg-white/30 transition-colors"
             >
               <MessageCircle className="w-5 h-5 text-white" />
             </button>
+            <span className="text-xs text-white mt-1 select-none">Chat</span>
           </div>
 
-          <button
-            onClick={() => setShowSettings(true)}
-            className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center cursor-pointer hover:bg-white/20 transition-colors"
-          >
-            <Settings className="w-5 h-5 text-white" />
-          </button>
+          {/* Folder */}
+          <div className="flex flex-col items-center cursor-pointer">
+            <button
+              onClick={() => setCurrentView("folder")}
+              className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-white/20 transition-colors"
+            >
+              <Folder className="w-5 h-5 text-white" />
+            </button>
+            <span className="text-xs text-white mt-1 select-none">Folder</span>
+          </div>
 
-          <div className="flex flex-col items-center space-y-1 mt-auto">
+          {/* Settings */}
+          <div className="flex flex-col items-center cursor-pointer">
+            <button
+              onClick={() => setShowSettings(true)}
+              className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-white/20 transition-colors"
+            >
+              <Settings className="w-5 h-5 text-white" />
+            </button>
+            <span className="text-xs text-white mt-1 select-none">Setting</span>
+          </div>
+
+          {/* Profile */}
+          <div className="flex flex-col items-center space-y-1 mt-auto cursor-pointer">
             <button
               onClick={() => setCurrentView("profile")}
-              className="w-10 h-10 bg-white/30 rounded-lg flex items-center justify-center cursor-pointer hover:bg-white/40 transition-colors"
+              className="w-10 h-10 bg-white/30 rounded-lg flex items-center justify-center hover:bg-white/40 transition-colors"
             >
-              <span className="text-sm font-bold text-white">E</span>
+              <span className="text-sm font-bold text-white">
+                {profileData.displayName ? profileData.displayName[0].toUpperCase() : "U"}
+              </span>
             </button>
+            <span className="text-xs text-white truncate max-w-[48px] text-center select-none">
+              {profileData.displayName || "User"}
+            </span>
           </div>
 
-          <button
-            onClick={handleLogout}
-            className="w-10 h-10 flex items-center justify-center cursor-pointer hover:bg-white/10 rounded-lg transition-colors"
-          >
-            <LogOut className="w-5 h-5 text-white" />
-          </button>
+          {/* Logout */}
+          <div className="flex flex-col items-center cursor-pointer" title="Logout">
+            <button
+              onClick={handleLogout}
+              className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
+            >
+              <LogOut className="w-5 h-5 text-white" />
+            </button>
+            <span className="text-xs text-white mt-1 select-none">Logout</span>
+          </div>
+        </div>
+        
+        {/* เนื้อหาในหน้า Profile */}
+        {/* Profile Form */}
+        <div className="flex-1 bg-gray-50 p-6">
+          <div className="max-w-md">
+            <div className="flex items-center mb-6">
+              <button onClick={() => setCurrentView("landing")} className="mr-4 text-gray-600 hover:text-gray-800">
+                ←
+              </button>
+              <h2 className="text-xl font-semibold">Profile</h2>
+            </div>
+
+            <div className="bg-white rounded-lg p-6 space-y-6">
+              <div className="flex items-center justify-center mb-6">
+                <div className="w-16 h-16 bg-cyan-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                  {profileData.displayName ? profileData.displayName[0].toUpperCase() : "U"}
+                </div>
+              </div>
+
+              {/* Display Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Display name</label>
+                <input
+                  type="text"
+                  placeholder="Enter Display Here"
+                  value={profileData.displayName}
+                  onChange={(e) => setProfileData({ ...profileData, displayName: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                />
+              </div>
+
+              {/* Profession */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Profession</label>
+                <input
+                  type="text"
+                  placeholder="Enter Profession Here"
+                  value={profileData.profession}
+                  onChange={(e) => setProfileData({ ...profileData, profession: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                />
+              </div>
+
+              {/* Phone */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                <input
+                  type="text"
+                  placeholder="Enter Contact No. Here"
+                  value={profileData.phone}
+                  onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                />
+              </div>
+
+              <button className="w-full bg-black hover:bg-gray-800 text-white py-2 px-4 rounded-md transition-colors">
+                Save Changes
+              </button>
+            </div>
+          </div>
         </div>
 
-        <ProfileView />
         <SettingsModal />
       </div>
     )
   }
+
 
   // หน้า chat ตรง Sidebar
   return (
