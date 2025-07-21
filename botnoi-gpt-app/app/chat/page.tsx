@@ -14,6 +14,7 @@ import {
   X,
   Edit,
 } from "lucide-react"
+
 import { useState } from "react"
 
 const BotnaiGPTIcon = () => (
@@ -27,7 +28,7 @@ const BotnaiGPTIcon = () => (
 export default function ChatPage() {
   const [message, setMessage] = useState("")
   const [isChatPanelOpen, setIsChatPanelOpen] = useState(true)
-  const [currentView, setCurrentView] = useState<"landing" | "chat" | "profile">("landing")
+  const [currentView, setCurrentView] = useState<"landing" | "chat" | "profile" | "folder">("landing")
   const [messages, setMessages] = useState([
     { id: 1, text: "How are you doing?", sender: "user" },
     { id: 2, text: "Hi, I'm doing well !", sender: "bot" },
@@ -330,49 +331,75 @@ export default function ChatPage() {
     )
   }
 
+  // หน้า chat ตรง Sidebar
   return (
     <div className="h-screen bg-gray-50 flex overflow-hidden">
-      {/* Sidebar */}
-      <div className="w-[58px] bg-gradient-to-b from-cyan-400 to-blue-500 flex flex-col items-center py-4 space-y-4">
-        {/* Chat Icon */}
-        <div className="relative">
-          <button
-            onClick={() => setIsChatPanelOpen(!isChatPanelOpen)}
-            className={`w-10 h-10 rounded-lg flex items-center justify-center cursor-pointer transition-colors ${
-              isChatPanelOpen ? "bg-white/30" : "bg-white/20"
-            } hover:bg-white/30`}
-            title={isChatPanelOpen ? "Hide chat panel" : "Show chat panel"}
-          >
-            <MessageCircle className="w-5 h-5 text-white" />
-          </button>
-        </div>
+    {/* Sidebar */}
+    <div className="w-[58px] bg-gradient-to-b from-cyan-400 to-blue-500 flex flex-col items-center py-4 space-y-4">
+      {/* Chat Icon */}
+      <div className="flex flex-col items-center cursor-pointer" title={isChatPanelOpen ? "Hide chat panel" : "Show chat panel"}>
+        <button
+          onClick={() => setIsChatPanelOpen(!isChatPanelOpen)}
+          className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
+            isChatPanelOpen ? "bg-white/30" : "bg-white/20"
+          } hover:bg-white/30`}
+        >
+          <MessageCircle className="w-5 h-5 text-white" />
+        </button>
+        <span className="text-xs text-white mt-1 select-none">Chat</span>
+      </div>
 
-        {/* Settings */}
+      {/* Folder */}
+      <div className="flex flex-col items-center cursor-pointer">
+        <button
+          onClick={() => setCurrentView("folder")}
+          className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-white/20 transition-colors"
+          title="Folder"
+        >
+          <Folder className="w-5 h-5 text-white" />
+        </button>
+        <span className="text-xs text-white mt-1 select-none">Folder</span>
+      </div>
+
+      {/* Settings */}
+      <div className="flex flex-col items-center cursor-pointer">
         <button
           onClick={() => setShowSettings(true)}
-          className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center cursor-pointer hover:bg-white/20 transition-colors"
+          className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center hover:bg-white/20 transition-colors"
         >
           <Settings className="w-5 h-5 text-white" />
         </button>
+        <span className="text-xs text-white mt-1 select-none">Setting</span>
+      </div>
 
-        {/* Profile */}
-        <div className="flex flex-col items-center space-y-1 mt-auto">
-          <button
-            onClick={() => setCurrentView("profile")}
-            className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center cursor-pointer hover:bg-white/30 transition-colors"
-          >
-            <span className="text-sm font-bold text-white">E</span>
-          </button>
-        </div>
 
-        {/* Logout */}
+      {/* Profile */}
+      <div className="flex flex-col items-center space-y-1 mt-auto cursor-pointer" title="Profile">
+        <button
+          onClick={() => setCurrentView("profile")}
+          className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center hover:bg-white/30 transition-colors"
+        >
+          <span className="text-sm font-bold text-white">
+            {profileData.displayName ? profileData.displayName[0].toUpperCase() : "E"}
+          </span>
+        </button>
+        <span className="text-xs text-white truncate max-w-[48px] text-center select-none">
+          {profileData.displayName || "User"}
+        </span>
+      </div>
+
+      {/* Logout */}
+      <div className="flex flex-col items-center cursor-pointer" title="Logout">
         <button
           onClick={handleLogout}
-          className="w-10 h-10 flex items-center justify-center cursor-pointer hover:bg-white/10 rounded-lg transition-colors"
+          className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-lg transition-colors"
         >
           <LogOut className="w-5 h-5 text-white" />
         </button>
+        <span className="text-xs text-white mt-1 select-none">Logout</span>
       </div>
+    </div>
+
 
       {/* Chat List Panel */}
       {isChatPanelOpen && (
@@ -381,17 +408,22 @@ export default function ChatPage() {
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-base font-semibold text-gray-900">Chat</h2>
               <div className="flex items-center space-x-2">
-                <button
+
+                {/* ปุ่ม folder ที่เอาออก */}
+                {/* <button
                   className="w-4 h-4 text-gray-500 hover:text-cyan-500 transition-colors cursor-pointer"
                   title="Create folder"
                 >
                   <Folder className="w-4 h-4" />
-                </button>
+                </button> */}
+
+                {/* ปุ่ม + new chat */}
                 <button
                   className="w-4 h-4 text-gray-500 hover:text-cyan-500 transition-colors cursor-pointer"
                   title="Start new chat"
                 >
                   <Plus className="w-4 h-4" />
+                  <span className="text-xs">New chat</span>
                 </button>
               </div>
             </div>
