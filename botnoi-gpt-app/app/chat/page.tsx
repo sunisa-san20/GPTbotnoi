@@ -160,6 +160,7 @@ const handleToggleMic = () => {
     window.location.href = "/"
   }
 
+  // หน้า setting
   const SettingsModal = () =>
     showSettings && (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -219,6 +220,7 @@ const handleToggleMic = () => {
       </div>
     )
 
+  // หน้า Profile 
   const ProfileView = () => (
     <div className="flex-1 bg-gray-50 p-6">
       <div className="max-w-md">
@@ -293,9 +295,9 @@ const handleToggleMic = () => {
     </div>
   )
 
+  // หน้า chat bot ส่งข้อความ
   const ChatView = () => (
     <div className="flex-1 bg-white flex flex-col">
-      {/* Header */}
       {/* Header */}
       <div className="p-4 border-b border-gray-100 flex items-center justify-between">
         <div className="flex items-center space-x-4">
@@ -399,6 +401,8 @@ const handleToggleMic = () => {
       </div>
     </div>
   )
+  
+  // หน้า ChatLanding
   const ChatLanding = () => (
   <div className="flex-1 bg-white flex flex-col">
     {/* Header */}
