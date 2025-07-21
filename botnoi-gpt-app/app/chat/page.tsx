@@ -13,10 +13,10 @@ import {
   Paperclip,
   X,
   Edit,
+  MoreVertical,
 } from "lucide-react"
 
 import { useState } from "react"
-import { MoreVertical } from "lucide-react"
 
 // หน้า get start
 const BotnaiGPTIcon = () => (
@@ -26,18 +26,23 @@ const BotnaiGPTIcon = () => (
     </div>
   </div>
 )
+interface Message {
+  id: number
+  text: string
+  sender: "user" | "bot"
+}
+
+interface Chat {
+  id: string
+  name: string
+  messages: Message[]
+}
 
 export default function ChatPage() {
   const [message, setMessage] = useState("")
   const [isChatPanelOpen, setIsChatPanelOpen] = useState(true)
   const [currentView, setCurrentView] = useState<"landing" | "chat" | "profile" | "folder" | "History">("landing")
-  const [messages, setMessages] = useState([
-    { id: 1, text: "How are you doing?", sender: "user" },
-    { id: 2, text: "Hi, I'm doing well !", sender: "bot" },
-    { id: 3, text: "How are you? All OK !?", sender: "user" },
-    { id: 4, text: "All OK !!!!!", sender: "bot" },
-    { id: 5, text: "Hi, How are you?", sender: "user" },
-  ])
+  const [messages, setMessages] = useState<{ id: number, text: string, sender: "user" | "bot" }[]>([])
   const [newMessage, setNewMessage] = useState("")
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [language, setLanguage] = useState("Auto detect")
@@ -49,21 +54,22 @@ export default function ChatPage() {
     email: "",
   })
 
+  // เพิ่ม State สำหรับควบคุมไมโครโฟนและปุ่มแนบไฟล์
+  const [isRecording, setIsRecording] = useState(false)
+  const [showAttachOptions, setShowAttachOptions] = useState(false)
+
   // เพิ่ม State สำหรับจัดการ Chat
-  const [chats, setChats] = useState([
-    { id: "1", name: "Chat 1", messages: ["Hello"] },
-    { id: "2", name: "Chat 2", messages: ["Hi"] },
-  ])
+  const [chats, setChats] = useState<Chat[]>([])
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null)
   const [dropdownOpenId, setDropdownOpenId] = useState<string | null>(null)
 
   // เพิ่มฟังก์ชันจัดการแชท
   const handleNewChat = () => {
-  const newChat = {
-    id: Date.now().toString(),
-    name: "New Chat",
-    messages: [],
-  }
+  const newChat: { id: string, name: string, messages: { id: number, text: string, sender: "user" | "bot" }[] } = {
+  id: Date.now().toString(),
+  name: "New Chat",
+  messages: [],
+}
   setChats((prev) => [newChat, ...prev])
   setSelectedChatId(newChat.id)
   setCurrentView("landing")  // กลับไปหน้า landing
@@ -110,20 +116,45 @@ const handleAddFolder = () => {
 }
 // ตรวจสอบว่าแชทที่เลือกคือ new chat
 const [isNewChat, setIsNewChat] = useState(false)
-
+  // ส่งข้อความและตอบกลับ***จำลอง***
   const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      setMessages([
-        ...messages,
-        {
-          id: messages.length + 1,
-          text: newMessage,
-          sender: "user",
-        },
-      ])
-      setNewMessage("")
-    }
+  if (newMessage.trim()) {
+    const id = messages.length + 1
+    setMessages([
+      ...messages,
+      { id, text: newMessage, sender: "user" },
+      { id: id + 1, text: "🤖 ตอบกลับจากบอท (จำลอง)", sender: "bot" },
+    ])
+    setNewMessage("")
   }
+}
+
+// แนบไฟล์
+const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0]
+  if (file) {
+    setMessages((prev) => [
+      ...prev,
+      { id: prev.length + 1, text: `📎 แนบไฟล์: ${file.name}`, sender: "user" },
+    ])
+  }
+  setShowAttachOptions(false)
+}
+
+// สำหรับพูด/หยุดพูด
+const handleToggleMic = () => {
+  if (!isRecording) {
+    setIsRecording(true)
+    alert("🎙️ เริ่มบันทึกเสียงแล้ว")
+  } else {
+    setIsRecording(false)
+    setMessages((prev) => [
+      ...prev,
+      { id: prev.length + 1, text: "🗣️ ข้อความจากเสียง (จำลอง)", sender: "user" },
+      { id: prev.length + 2, text: "🤖 ตอบกลับจากเสียง (จำลอง)", sender: "bot" },
+    ])
+  }
+}
 
   const handleLogout = () => {
     window.location.href = "/"
@@ -265,18 +296,19 @@ const [isNewChat, setIsNewChat] = useState(false)
   const ChatView = () => (
     <div className="flex-1 bg-white flex flex-col">
       {/* Header */}
+      {/* Header */}
       <div className="p-4 border-b border-gray-100 flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <h2 className="text-base font-semibold text-gray-900">Botnoi GPT</h2>
-          <div className="flex space-x-2">
-            <div className="w-4 h-4 border border-gray-300 rounded"></div>
-            <div className="w-4 h-4 border border-gray-300 rounded"></div>
+          <div className="w-12 h-12 bg-white rounded-full overflow-hidden">
+            <img src="/botnoi_logo.jpg" alt="Botnoi Logo" className="w-full h-full object-cover" />
           </div>
+          <span className="text-base font-medium text-gray-900">Botnoi GPT</span>
         </div>
-        {/* ปรับเมนูจุด 3 จุดแนวตั้ง */}
+
+        {/* เมนูจุด 3 จุด */}
         <div className="relative">
           <button
-            onClick={() => setDropdownOpenId("chat-menu")}
+            onClick={() => setDropdownOpenId(dropdownOpenId === "chat-menu" ? null : "chat-menu")}
             className="p-1 rounded hover:bg-gray-100"
           >
             <MoreVertical className="w-5 h-5 text-gray-400" />
@@ -291,19 +323,30 @@ const [isNewChat, setIsNewChat] = useState(false)
               >
                 History
               </button>
-              <button className="w-full text-left px-4 py-2 hover:bg-gray-100" onClick={() => alert("Link copied!")}>
+              <button
+                className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                onClick={() => alert("Link copied!")}
+              >
                 Share
               </button>
             </div>
           )}
         </div>
+      </div>
 
+      {/* แสดงสถานะจุด */}
+      <div className="flex space-x-2 px-4 py-1">
+        <div className="w-4 h-4 border border-gray-300 rounded"></div>
+        <div className="w-4 h-4 border border-gray-300 rounded"></div>
       </div>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-6 space-y-4">
         {messages.map((message) => (
-          <div key={message.id} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
+          <div
+            key={message.id}
+            className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}
+          >
             <div
               className={`max-w-xs px-4 py-2 rounded-lg ${
                 message.sender === "user" ? "bg-cyan-500 text-white" : "bg-gray-200 text-gray-800"
@@ -318,22 +361,44 @@ const [isNewChat, setIsNewChat] = useState(false)
       {/* Input */}
       <div className="p-4 border-t border-gray-100">
         <div className="flex items-center space-x-3 bg-gray-50 rounded-xl px-4 py-3">
-          <Paperclip className="w-5 h-5 text-gray-500 cursor-pointer hover:text-gray-700" />
+          <div className="relative">
+            <button onClick={() => setShowAttachOptions(!showAttachOptions)}>
+              <Plus className="w-5 h-5 text-gray-500 cursor-pointer hover:text-gray-700" />
+            </button>
+            {showAttachOptions && (
+              <div className="absolute bottom-10 left-0 w-36 bg-white border rounded shadow-md z-10">
+                <label className="block px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                  📎 แนบไฟล์
+                  <input type="file" className="hidden" onChange={handleFileUpload} />
+                </label>
+                <label className="block px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                  🖼️ แนบรูปภาพ
+                  <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
+                </label>
+              </div>
+            )}
+          </div>
+
           <input
             type="text"
-            placeholder="Type your message here..."
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-            className="flex-1 bg-transparent border-none outline-none text-gray-700 placeholder-gray-500"
+            onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+            placeholder="พิมพ์ข้อความ..."
+            className="flex-1 px-3 py-2 bg-transparent border-none outline-none"
           />
-          <Mic className="w-5 h-5 text-gray-500 cursor-pointer hover:text-gray-700" />
-          <Send className="w-5 h-5 text-cyan-500 cursor-pointer hover:text-cyan-600" onClick={handleSendMessage} />
+
+          <button onClick={handleToggleMic}>
+            <Mic className={`w-5 h-5 ${isRecording ? "text-red-500" : "text-gray-500"}`} />
+          </button>
+
+          <button onClick={handleSendMessage}>
+            <Send className="w-5 h-5 text-cyan-500 cursor-pointer hover:text-cyan-600" />
+          </button>
         </div>
       </div>
     </div>
   )
-
   const ChatLanding = () => (
   <div className="flex-1 bg-white flex flex-col">
     {/* Header */}
@@ -366,16 +431,40 @@ const [isNewChat, setIsNewChat] = useState(false)
     {/* Input Area */}
     <div className="p-4 border-t border-gray-100">
       <div className="flex items-center space-x-3 bg-gray-50 rounded-xl px-4 py-3">
-        <Plus className="w-5 h-5 text-gray-500 cursor-pointer hover:text-gray-700" />
+        <div className="relative">
+          <button onClick={() => setShowAttachOptions(!showAttachOptions)}>
+            <Plus className="w-5 h-5 text-gray-500 cursor-pointer hover:text-gray-700" />
+          </button>
+          {showAttachOptions && (
+            <div className="absolute bottom-10 left-0 w-36 bg-white border rounded shadow-md z-10">
+              <label className="block px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                📎 แนบไฟล์
+                <input type="file" className="hidden" onChange={handleFileUpload} />
+              </label>
+              <label className="block px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                🖼️ แนบรูปภาพ
+                <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
+              </label>
+            </div>
+          )}
+        </div>
+
         <input
           type="text"
-          placeholder="Type your message here..."
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          className="flex-1 bg-transparent border-none outline-none text-gray-700 placeholder-gray-500"
+          value={newMessage}
+          onChange={(e) => setNewMessage(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+          placeholder="พิมพ์ข้อความ..."
+          className="flex-1 px-3 py-2 bg-transparent border-none outline-none"
         />
-        <Mic className="w-5 h-5 text-gray-500 cursor-pointer hover:text-gray-700" />
-        <Send className="w-5 h-5 text-cyan-500 cursor-pointer hover:text-cyan-600" />
+
+        <button onClick={handleToggleMic}>
+          <Mic className={`w-5 h-5 ${isRecording ? "text-red-500" : "text-gray-500"}`} />
+        </button>
+
+        <button onClick={handleSendMessage}>
+          <Send className="w-5 h-5 text-cyan-500 cursor-pointer hover:text-cyan-600" />
+        </button>
       </div>
     </div>
   </div>
@@ -623,10 +712,13 @@ const [isNewChat, setIsNewChat] = useState(false)
                 <div
                   key={chat.id}
                   className="group flex items-center justify-between px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                  // ฟังก์ชันเลือกแชท
                   onClick={() => {
-                    setSelectedChatId(chat.id);
-                    setCurrentView("chat");
+                    setSelectedChatId(chat.id)
+                    setCurrentView("chat")
+                    setMessages(chat.messages) // โหลดข้อความของแชทนั้น
                   }}
+
                 >
                   <div className="text-sm text-gray-800 truncate">{chat.name}</div>
                   <div className="relative">
