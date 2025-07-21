@@ -47,6 +47,55 @@ export default function ChatPage() {
     email: "",
   })
 
+  // เพิ่ม State สำหรับจัดการ Chat
+  const [chats, setChats] = useState([
+    { id: "1", name: "Chat 1", messages: ["Hello"] },
+    { id: "2", name: "Chat 2", messages: ["Hi"] },
+  ])
+  const [selectedChatId, setSelectedChatId] = useState<string | null>(null)
+  const [dropdownOpenId, setDropdownOpenId] = useState<string | null>(null)
+
+  // เพิ่มฟังก์ชันจัดการแชท
+  const handleNewChat = () => {
+  const newChat = {
+    id: Date.now().toString(),
+    name: "New Chat",
+    messages: [],
+  }
+  setChats((prev) => [newChat, ...prev])
+  setSelectedChatId(newChat.id)
+  setCurrentView("chat") // เปิดหน้าต่าง chat ใหม่
+}
+
+const handleRename = (id: string) => {
+  const newName = prompt("Enter new chat name:")
+  if (newName) {
+    setChats((prev) =>
+      prev.map((chat) => (chat.id === id ? { ...chat, name: newName } : chat))
+    )
+  }
+  setDropdownOpenId(null)
+}
+
+const handleDelete = (id: string) => {
+  setChats((prev) => prev.filter((chat) => chat.id !== id))
+  if (selectedChatId === id) setSelectedChatId(null)
+  setDropdownOpenId(null)
+}
+
+const handlePin = (id: string) => {
+  const pinned = chats.find((c) => c.id === id)
+  if (!pinned) return
+  const rest = chats.filter((c) => c.id !== id)
+  setChats([pinned, ...rest])
+  setDropdownOpenId(null)
+}
+
+const handleSaveToFolder = (id: string) => {
+  alert("Save to folder: " + id)
+  setDropdownOpenId(null)
+}
+
   const handleSendMessage = () => {
     if (newMessage.trim()) {
       setMessages([
@@ -401,58 +450,91 @@ export default function ChatPage() {
     </div>
 
 
-      {/* Chat List Panel */}
-      {isChatPanelOpen && (
+            {isChatPanelOpen && (
         <div className="w-[185px] bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ease-in-out">
           <div className="p-3 border-b border-gray-100">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-base font-semibold text-gray-900">Chat</h2>
-              <div className="flex items-center space-x-2">
-
-                {/* ปุ่ม folder ที่เอาออก */}
-                {/* <button
-                  className="w-4 h-4 text-gray-500 hover:text-cyan-500 transition-colors cursor-pointer"
-                  title="Create folder"
-                >
-                  <Folder className="w-4 h-4" />
-                </button> */}
-
-                {/* ปุ่ม + new chat */}
-                <button
-                  className="w-4 h-4 text-gray-500 hover:text-cyan-500 transition-colors cursor-pointer"
-                  title="Start new chat"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span className="text-xs">New chat</span>
-                </button>
-              </div>
+              <button
+                onClick={handleNewChat}
+                className="flex flex-col items-center text-gray-500 hover:text-cyan-500"
+                title="New Chat"
+              >
+                <Plus className="w-4 h-4" />
+                <span className="text-[10px] mt-1">New Chat</span>
+              </button>
             </div>
+
             {/* Search */}
             <div className="relative">
               <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Search"
+                placeholder="Search chat name"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
                 className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 rounded-lg border-none focus:outline-none focus:ring-2 focus:ring-cyan-500/20"
               />
             </div>
           </div>
 
-          {/* Chat Item */}
-          <div className="p-3">
-            <div
-              className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer"
-              onClick={() => setCurrentView("chat")}
-            >
-              <div className="w-8 h-8 bg-cyan-500 rounded-full flex items-center justify-center flex-shrink-0">
-                <div className="text-white text-sm">🤖</div>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-gray-900 truncate">Botnoi GPT</div>
-                <div className="text-xs text-gray-500 truncate">How are you doing?</div>
-              </div>
-              <div className="text-xs text-gray-400">•••</div>
-            </div>
+          {/* Chat list */}
+          <div className="flex-1 overflow-y-auto">
+            {chats
+              .filter((chat) =>
+                chat.name.toLowerCase().includes(message.toLowerCase())
+              )
+              .map((chat) => (
+                <div
+                  key={chat.id}
+                  className="group flex items-center justify-between px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                  onClick={() => {
+                    setSelectedChatId(chat.id);
+                    setCurrentView("chat");
+                  }}
+                >
+                  <div className="text-sm text-gray-800 truncate">{chat.name}</div>
+                  <div className="relative">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDropdownOpenId(dropdownOpenId === chat.id ? null : chat.id);
+                      }}
+                      className="p-1 rounded hover:bg-gray-200"
+                    >
+                      <MoreHorizontal className="w-4 h-4 text-gray-500" />
+                    </button>
+                    {dropdownOpenId === chat.id && (
+                      <div className="absolute right-0 mt-1 w-40 bg-white border border-gray-300 rounded shadow-md z-10">
+                        <button
+                          onClick={() => handleRename(chat.id)}
+                          className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                        >
+                          Change name
+                        </button>
+                        <button
+                          onClick={() => handleDelete(chat.id)}
+                          className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                        >
+                          Delete
+                        </button>
+                        <button
+                          onClick={() => handlePin(chat.id)}
+                          className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                        >
+                          Pin
+                        </button>
+                        <button
+                          onClick={() => handleSaveToFolder(chat.id)}
+                          className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                        >
+                          Save in folder
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
           </div>
         </div>
       )}
@@ -460,8 +542,10 @@ export default function ChatPage() {
       {/* Main Chat Area */}
       {currentView === "landing" && <ChatLanding />}
       {currentView === "chat" && <ChatView />}
+      {currentView === "folder" && <div className="flex-1 flex items-center justify-center text-gray-500">Folder Page</div>}
 
       <SettingsModal />
-    </div>
+    </div> 
   )
 }
+
