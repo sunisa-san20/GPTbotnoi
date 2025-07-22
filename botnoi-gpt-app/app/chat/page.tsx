@@ -110,29 +110,70 @@ const groupChatsByTime = () => {
 
 const groupedChats = groupChatsByTime();
 
+// เพิ่ม State ควบคุม Popups
+const [showSavePopup, setShowSavePopup] = useState<string | null>(null);
+const [showSharePopup, setShowSharePopup] = useState<string | null>(null);
+const [sharePrivacy, setSharePrivacy] = useState<'public' | 'private'>('private');
+const [renameData, setRenameData] = useState<{ id: string, name: string } | null>(null)
 
+// Rename
 const handleRename = (id: string) => {
-  const newName = prompt("Enter new chat name:")
-  if (newName) {
-    setChats((prev) =>
-      prev.map((chat) => (chat.id === id ? { ...chat, name: newName } : chat))
-    )
-  }
+  const chat = chats.find(c => c.id === id)
+  if (chat) setRenameData({ id, name: chat.name })
   setDropdownOpenId(null)
 }
 
-// ยืนยันก่อนลบ
-const handleDelete = (id: string) => {
-  const confirmed = window.confirm("Are you sure you want to delete this chat?");
-  if (!confirmed) return;
-
-  setChats((prev) => prev.filter((chat) => chat.id !== id));
-  if (selectedChatId === id) {
-    setSelectedChatId(null);
-    setMessages([]);
+const applyRename = () => {
+  if (renameData) {
+    setChats(prev =>
+      prev.map(chat =>
+        chat.id === renameData.id ? { ...chat, name: renameData.name } : chat
+      )
+    )
+    setRenameData(null)
   }
-  setDropdownOpenId(null);
-};
+}
+
+// Save in Folder
+const [saveToFolderId, setSaveToFolderId] = useState<string | null>(null)
+const [selectedFolder, setSelectedFolder] = useState("")
+const [newFolderName, setNewFolderName] = useState("")
+
+const handleApplySaveToFolder = () => {
+  const folderToUse = newFolderName.trim() || selectedFolder
+  if (!folderToUse) return
+
+  if (!folders.includes(folderToUse)) {
+    setFolders((prev) => [...prev, folderToUse])
+  }
+
+  setChats((prev) =>
+    prev.map((chat) =>
+      chat.id === saveToFolderId ? { ...chat, folder: folderToUse } : chat
+    )
+  )
+  setSaveToFolderId(null)
+  setSelectedFolder("")
+  setNewFolderName("")
+}
+
+// Share
+const [shareChatId, setShareChatId] = useState<string | null>(null)
+const [shareMode, setShareMode] = useState<"public" | "private">("private")
+
+// ยืนยันก่อนลบ
+const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+
+const handleDeleteConfirmed = () => {
+  if (!confirmDeleteId) return
+  setChats((prev) => prev.filter((chat) => chat.id !== confirmDeleteId))
+  if (selectedChatId === confirmDeleteId) {
+    setSelectedChatId(null)
+    setMessages([])
+  }
+  setConfirmDeleteId(null)
+  setDropdownOpenId(null)
+}
 
 const handlePin = (id: string) => {
   setChats((prev) =>
@@ -145,16 +186,32 @@ const handlePin = (id: string) => {
 
 // Save in Folder
 const handleSaveToFolder = (id: string) => {
-  const folder = prompt("Choose folder to save this chat:", folders.join(", "));
-  if (folder && folders.includes(folder)) {
-    setChats((prev) =>
-      prev.map((chat) =>
-        chat.id === id ? { ...chat, folder } : chat
-      )
-    );
-  }
-  setDropdownOpenId(null);
-};
+  setSaveToFolderId(id);         // ใช้ state ที่ modal ใช้อยู่จริง
+  setDropdownOpenId(null);       // ปิดเมนู dropdown
+}
+
+// สร้าง Modal กลางจอ
+const CenteredModal = ({
+  title,
+  children,
+  onClose,
+}: {
+  title: string
+  children: React.ReactNode
+  onClose: () => void
+}) => (
+  <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+    <div className="bg-white rounded-lg w-[360px] max-w-full shadow-lg p-6">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-semibold">{title}</h3>
+        <button onClick={onClose}>
+          <X className="w-5 h-5 text-gray-500" />
+        </button>
+      </div>
+      {children}
+    </div>
+  </div>
+)
 
 // สำหรับหน้า Folder
 const [folders, setFolders] = useState<string[]>(["Work", "Personal"])
@@ -390,9 +447,9 @@ const handleToggleMic = () => {
               </button>
               <button
                 className="w-full text-left px-4 py-2 hover:bg-gray-100"
-                onClick={() => alert("Link copied!")}
+                onClick={() => selectedChatId && setShareChatId(selectedChatId)}
               >
-               ➦ Share
+                ➦ Share
               </button>
             </div>
           )}
@@ -817,8 +874,8 @@ const handleToggleMic = () => {
                                 ✏️ Change name
                               </button>
                               <button
-                                onClick={() => handleDelete(chat.id)}
-                                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                                onClick={() => setConfirmDeleteId(chat.id)}
+                                className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600"
                               >
                                 🗑️ Delete
                               </button>
@@ -826,7 +883,7 @@ const handleToggleMic = () => {
                                 onClick={() => handlePin(chat.id)}
                                 className="block w-full text-left px-4 py-2 hover:bg-gray-100"
                               >
-                                📌 Pin
+                                {chat.isPinned ? "📌 Unpin" : "📌 Pin"}
                               </button>
                               <button
                                 onClick={() => handleSaveToFolder(chat.id)}
@@ -1065,6 +1122,134 @@ const handleToggleMic = () => {
           })}
         </div>
       )}
+
+      {confirmDeleteId && (
+        <CenteredModal title="Delete Chat?" onClose={() => setConfirmDeleteId(null)}>
+          <p className="text-gray-600 mb-4">Are you sure you want to delete this chat?</p>
+          <div className="flex justify-end gap-2">
+            <button onClick={() => setConfirmDeleteId(null)} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Cancel</button>
+            <button onClick={handleDeleteConfirmed} className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">Delete</button>
+          </div>
+        </CenteredModal>
+      )}
+
+      {renameData && (
+        <CenteredModal title="Rename Chat" onClose={() => setRenameData(null)}>
+          <input
+            className="w-full border px-3 py-2 rounded mb-4"
+            value={renameData.name}
+            onChange={(e) => setRenameData({ ...renameData, name: e.target.value })}
+          />
+          <div className="flex justify-end gap-2">
+            <button onClick={() => setRenameData(null)} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Cancel</button>
+            <button onClick={applyRename} className="px-4 py-2 bg-cyan-500 text-white rounded hover:bg-cyan-600">Save</button>
+          </div>
+        </CenteredModal>
+      )}
+
+      {/* Save in Folder Popup */}
+      {saveToFolderId && (
+        <CenteredModal title="Save Chat in Folder" onClose={() => setSaveToFolderId(null)}>
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1">Select folder</label>
+            <select
+              className="w-full border px-3 py-2 rounded"
+              value={selectedFolder}
+              onChange={(e) => setSelectedFolder(e.target.value)}
+            >
+              <option value="">-- Select Folder --</option>
+              {folders.map((f, i) => (
+                <option key={i} value={f}>{f}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1">OR Create New Folder</label>
+            <input
+              type="text"
+              value={newFolderName}
+              onChange={(e) => setNewFolderName(e.target.value)}
+              placeholder="New folder name"
+              className="w-full border px-3 py-2 rounded"
+            />
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => setSaveToFolderId(null)}
+              className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                const folderToUse = newFolderName.trim() || selectedFolder
+                if (!folderToUse) return
+
+                if (!folders.includes(folderToUse)) {
+                  setFolders((prev) => [...prev, folderToUse])
+                }
+
+                setChats((prev) =>
+                  prev.map((chat) =>
+                    chat.id === saveToFolderId ? { ...chat, folder: folderToUse } : chat
+                  )
+                )
+
+                setSaveToFolderId(null)
+                setSelectedFolder("")
+                setNewFolderName("")
+              }}
+              className="px-4 py-2 bg-cyan-500 text-white rounded hover:bg-cyan-600"
+            >
+              Save
+            </button>
+          </div>
+        </CenteredModal>
+      )}
+
+      {/* แชร์ public / private และ copy URL */}
+      {shareChatId && (
+        <CenteredModal title="Share Chat" onClose={() => setShareChatId(null)}>
+          <div className="mb-4 space-y-2">
+            <label className="block text-sm font-medium">Visibility:</label>
+            <div className="space-x-4">
+              <label>
+                <input type="radio" checked={shareMode === "public"} onChange={() => setShareMode("public")} /> Public
+              </label>
+              <label>
+                <input type="radio" checked={shareMode === "private"} onChange={() => setShareMode("private")} /> Private
+              </label>
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm mb-1">Share Link</label>
+            <div className="flex items-center space-x-2">
+              <input
+                readOnly
+                value={`https://botnoi.app/share/${shareChatId}?mode=${shareMode}`}
+                className="flex-1 px-2 py-1 border rounded"
+              />
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(`https://botnoi.app/share/${shareChatId}?mode=${shareMode}`)
+                  alert("Link copied!")
+                }}
+                className="text-sm px-2 py-1 bg-gray-100 rounded hover:bg-gray-200"
+              >
+                Copy
+              </button>
+            </div>
+          </div>
+
+          <div className="flex justify-end">
+            <button onClick={() => setShareChatId(null)} className="px-4 py-2 bg-cyan-500 text-white rounded hover:bg-cyan-600">Done</button>
+          </div>
+        </CenteredModal>
+      )}
+
       <SettingsModal />
     </div> 
   )
