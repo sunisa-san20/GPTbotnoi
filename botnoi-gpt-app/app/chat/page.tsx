@@ -215,13 +215,11 @@ const CenteredModal = ({
 
 // สำหรับหน้า Folder
 const [folders, setFolders] = useState<string[]>(["Work", "Personal"])
-const [folderSearch, setFolderSearch] = useState("")
+const [folderSearchKeyword, setFolderSearchKeyword] = useState("");
 const handleAddFolder = () => {
-  const name = prompt("Enter new folder name:")
-  if (name && !folders.includes(name)) {
-    setFolders((prev) => [...prev, name])
-  }
-}
+  setShowAddFolderPopup(true);
+};
+
 // หน้า Folders สำหรับ Rename / Delete / Add
 const [folderToRename, setFolderToRename] = useState<string | null>(null)
 const [newFolderNameTemp, setNewFolderNameTemp] = useState("")
@@ -512,6 +510,8 @@ const handleToggleMic = () => {
 
           <input
             type="text"
+            name="chat-input"
+            autoComplete="off"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
@@ -584,6 +584,8 @@ const handleToggleMic = () => {
 
         <input
           type="text"
+          name="chat-input"
+          autoComplete="off"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
@@ -934,9 +936,9 @@ const handleToggleMic = () => {
           <div className="mb-4">
             <input
               type="text"
-              placeholder="Search folders..."
-              value={folderSearch}
-              onChange={(e) => setFolderSearch(e.target.value)}
+              placeholder="Search folders, chats, or keywords..."
+              value={folderSearchKeyword}
+              onChange={(e) => setFolderSearchKeyword(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-cyan-400"
             />
           </div>
@@ -944,7 +946,23 @@ const handleToggleMic = () => {
           {/* Folder list */}
           <ul className="space-y-4">
             {folders
-              .filter((f) => f.toLowerCase().includes(folderSearch.toLowerCase()))
+              .filter((folderName) => {
+                const keyword = folderSearchKeyword.toLowerCase();
+
+                // หาก keyword ตรงกับชื่อ folder
+                if (folderName.toLowerCase().includes(keyword)) return true;
+
+                // หากตรงกับชื่อแชทหรือข้อความในแชทภายใน folder นี้
+                const hasMatchingChat = chats.some(
+                  (chat) =>
+                    chat.folder === folderName &&
+                    (
+                      chat.name.toLowerCase().includes(keyword) ||
+                      chat.messages.some((m) => m.text.toLowerCase().includes(keyword))
+                    )
+                );
+                return hasMatchingChat;
+              })
               .map((folder, idx) => (
                 <li key={idx} className="bg-gray-100 rounded p-4">
                   <div className="flex justify-between items-center mb-2">
@@ -1079,16 +1097,16 @@ const handleToggleMic = () => {
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <button
+                        <div
                           onClick={() => {
                             setSelectedChatId(chat.id);
                             setMessages(chat.messages);
                             setCurrentView("chat");
                           }}
-                          className="text-blue-500 text-sm hover:underline"
+                          className="font-medium truncate text-blue-600 cursor-pointer hover:underline"
                         >
-                          Open
-                        </button>
+                          {chat.name}
+                        </div>
                         <button
                           onClick={() => setHistoryDeleteId(chat.id)}
                           className="text-red-500 text-sm hover:underline"
