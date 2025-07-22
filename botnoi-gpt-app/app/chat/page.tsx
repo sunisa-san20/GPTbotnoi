@@ -227,7 +227,9 @@ const [folderToDelete, setFolderToDelete] = useState<string | null>(null)
 const [showAddFolderPopup, setShowAddFolderPopup] = useState(false)
 // const [newFolderName, setNewFolderName] = useState("")
 const [historyDeleteId, setHistoryDeleteId] = useState<string | null>(null)
-
+const [removeFromFolderId, setRemoveFromFolderId] = useState<string | null>(null);
+const [moveChatId, setMoveChatId] = useState<string | null>(null);
+const [moveTargetFolder, setMoveTargetFolder] = useState("");
 
 // ตรวจสอบว่าแชทที่เลือกคือ new chat
 const [isNewChat, setIsNewChat] = useState(false)
@@ -1007,30 +1009,15 @@ const handleToggleMic = () => {
                           <div className="flex space-x-2">
                             <button
                               onClick={() => {
-                                const target = prompt("Move to folder:", folder);
-                                if (target && target !== folder && folders.includes(target)) {
-                                  setChats((prev) =>
-                                    prev.map((c) =>
-                                      c.id === chat.id ? { ...c, folder: target } : c
-                                    )
-                                  );
-                                }
+                                setMoveChatId(chat.id);
+                                setMoveTargetFolder(""); // reset dropdown
                               }}
                               className="text-blue-500 text-sm hover:underline"
                             >
                               📁 Move
                             </button>
                             <button
-                              onClick={() => {
-                                const confirmed = window.confirm("Remove chat from this folder?");
-                                if (confirmed) {
-                                  setChats((prev) =>
-                                    prev.map((c) =>
-                                      c.id === chat.id ? { ...c, folder: undefined } : c
-                                    )
-                                  );
-                                }
-                              }}
+                              onClick={() => setRemoveFromFolderId(chat.id)}
                               className="text-red-500 text-sm hover:underline"
                             >
                               🗑️ Remove
@@ -1345,6 +1332,72 @@ const handleToggleMic = () => {
               className="bg-red-500 text-white px-4 py-2 rounded"
             >
               Delete
+            </button>
+          </div>
+        </CenteredModal>
+      )}
+
+      {/* Popup กลางจอสำหรับ Remove */}
+      {removeFromFolderId && (
+        <CenteredModal title="Remove Chat from Folder?" onClose={() => setRemoveFromFolderId(null)}>
+          <p className="text-gray-600 mb-4">Are you sure you want to remove this chat from the folder?</p>
+          <div className="flex justify-end gap-2">
+            <button onClick={() => setRemoveFromFolderId(null)} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Cancel</button>
+            <button
+              onClick={() => {
+                setChats((prev) =>
+                  prev.map((chat) =>
+                    chat.id === removeFromFolderId ? { ...chat, folder: undefined } : chat
+                  )
+                );
+                setRemoveFromFolderId(null);
+              }}
+              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+            >
+              Remove
+            </button>
+          </div>
+        </CenteredModal>
+      )}
+
+      {/* move  Folder*/}
+      {moveChatId && (
+        <CenteredModal title="Move Chat to Folder" onClose={() => setMoveChatId(null)}>
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1">Select Folder</label>
+            <select
+              className="w-full border px-3 py-2 rounded"
+              value={moveTargetFolder}
+              onChange={(e) => setMoveTargetFolder(e.target.value)}
+            >
+              <option value="">-- Select Folder --</option>
+              {folders.map((f, i) => (
+                <option key={i} value={f}>{f}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => setMoveChatId(null)}
+              className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                if (!moveTargetFolder) return;
+                setChats(prev =>
+                  prev.map(chat =>
+                    chat.id === moveChatId ? { ...chat, folder: moveTargetFolder } : chat
+                  )
+                );
+                setMoveChatId(null);
+                setMoveTargetFolder("");
+              }}
+              className="px-4 py-2 bg-cyan-500 text-white rounded hover:bg-cyan-600"
+            >
+              Move
             </button>
           </div>
         </CenteredModal>
