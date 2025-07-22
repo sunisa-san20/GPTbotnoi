@@ -222,6 +222,15 @@ const handleAddFolder = () => {
     setFolders((prev) => [...prev, name])
   }
 }
+// หน้า Folders สำหรับ Rename / Delete / Add
+const [folderToRename, setFolderToRename] = useState<string | null>(null)
+const [newFolderNameTemp, setNewFolderNameTemp] = useState("")
+const [folderToDelete, setFolderToDelete] = useState<string | null>(null)
+const [showAddFolderPopup, setShowAddFolderPopup] = useState(false)
+// const [newFolderName, setNewFolderName] = useState("")
+const [historyDeleteId, setHistoryDeleteId] = useState<string | null>(null)
+
+
 // ตรวจสอบว่าแชทที่เลือกคือ new chat
 const [isNewChat, setIsNewChat] = useState(false)
 // ส่งข้อความและตอบกลับ***จำลอง***
@@ -941,38 +950,20 @@ const handleToggleMic = () => {
                   <div className="flex justify-between items-center mb-2">
                     <div className="font-semibold text-gray-800">📁 {folder}</div>
                     <div className="space-x-2">
+                      {/* เปลี่ยน Rename */}
                       <button
                         onClick={() => {
-                          const newName = prompt("Rename folder:", folder);
-                          if (newName && newName !== folder) {
-                            // Rename in folders list
-                            setFolders((prev) =>
-                              prev.map((f) => (f === folder ? newName : f))
-                            );
-                            // Update folder name in all chats
-                            setChats((prev) =>
-                              prev.map((chat) =>
-                                chat.folder === folder ? { ...chat, folder: newName } : chat
-                              )
-                            );
-                          }
+                          setFolderToRename(folder)
+                          setNewFolderNameTemp(folder)
                         }}
                         className="text-blue-500 text-sm hover:underline"
                       >
                         ✏️ Rename
                       </button>
+
+                      {/* เปลี่ยน Delete */}
                       <button
-                        onClick={() => {
-                          const confirmed = window.confirm("Delete this folder?");
-                          if (confirmed) {
-                            setFolders((prev) => prev.filter((f) => f !== folder));
-                            setChats((prev) =>
-                              prev.map((chat) =>
-                                chat.folder === folder ? { ...chat, folder: undefined } : chat
-                              )
-                            );
-                          }
-                        }}
+                        onClick={() => setFolderToDelete(folder)}
                         className="text-red-500 text-sm hover:underline"
                       >
                         🗑️ Delete
@@ -1099,16 +1090,7 @@ const handleToggleMic = () => {
                           Open
                         </button>
                         <button
-                          onClick={() => {
-                            const confirmDelete = window.confirm("Delete this chat?");
-                            if (confirmDelete) {
-                              setChats((prev) => prev.filter((c) => c.id !== chat.id));
-                              if (selectedChatId === chat.id) {
-                                setSelectedChatId(null);
-                                setMessages([]);
-                              }
-                            }
-                          }}
+                          onClick={() => setHistoryDeleteId(chat.id)}
                           className="text-red-500 text-sm hover:underline"
                         >
                           🗑️ Delete
@@ -1246,6 +1228,106 @@ const handleToggleMic = () => {
 
           <div className="flex justify-end">
             <button onClick={() => setShareChatId(null)} className="px-4 py-2 bg-cyan-500 text-white rounded hover:bg-cyan-600">Done</button>
+          </div>
+        </CenteredModal>
+      )}
+
+      {/* Rename Folder */}
+      {folderToRename && (
+        <CenteredModal title="Rename Folder" onClose={() => setFolderToRename(null)}>
+          <input
+            type="text"
+            className="w-full px-3 py-2 border rounded mb-4"
+            placeholder="New folder name"
+            value={newFolderNameTemp}
+            onChange={(e) => setNewFolderNameTemp(e.target.value)}
+          />
+          <div className="flex justify-end gap-2">
+            <button onClick={() => setFolderToRename(null)} className="bg-gray-200 px-4 py-2 rounded">Cancel</button>
+            <button
+              className="bg-blue-500 text-white px-4 py-2 rounded"
+              onClick={() => {
+                if (newFolderNameTemp && folderToRename) {
+                  setFolders((prev) => prev.map(f => f === folderToRename ? newFolderNameTemp : f))
+                  setChats((prev) => prev.map(chat => chat.folder === folderToRename ? { ...chat, folder: newFolderNameTemp } : chat))
+                  setFolderToRename(null)
+                  setNewFolderNameTemp("")
+                }
+              }}
+            >
+              Save
+            </button>
+          </div>
+        </CenteredModal>
+      )}
+
+      {/* Delete Folder */}
+      {folderToDelete && (
+        <CenteredModal title="Delete Folder" onClose={() => setFolderToDelete(null)}>
+          <p className="mb-4 text-gray-700">Are you sure you want to delete folder <strong>{folderToDelete}</strong>?</p>
+          <div className="flex justify-end gap-2">
+            <button onClick={() => setFolderToDelete(null)} className="bg-gray-200 px-4 py-2 rounded">Cancel</button>
+            <button
+              className="bg-red-500 text-white px-4 py-2 rounded"
+              onClick={() => {
+                setFolders((prev) => prev.filter(f => f !== folderToDelete))
+                setChats((prev) => prev.map(chat => chat.folder === folderToDelete ? { ...chat, folder: undefined } : chat))
+                setFolderToDelete(null)
+              }}
+            >
+              Delete
+            </button>
+          </div>
+        </CenteredModal>
+      )}
+
+      {/* Add Folder */}
+      {showAddFolderPopup && (
+        <CenteredModal title="Add New Folder" onClose={() => setShowAddFolderPopup(false)}>
+          <input
+            type="text"
+            placeholder="Folder name"
+            className="w-full px-3 py-2 border rounded mb-4"
+            value={newFolderName}
+            onChange={(e) => setNewFolderName(e.target.value)}
+          />
+          <div className="flex justify-end gap-2">
+            <button onClick={() => setShowAddFolderPopup(false)} className="bg-gray-200 px-4 py-2 rounded">Cancel</button>
+            <button
+              className="bg-cyan-500 text-white px-4 py-2 rounded"
+              onClick={() => {
+                if (newFolderName && !folders.includes(newFolderName)) {
+                  setFolders((prev) => [...prev, newFolderName])
+                  setNewFolderName("")
+                }
+                setShowAddFolderPopup(false)
+              }}
+            >
+              Add
+            </button>
+          </div>
+        </CenteredModal>
+      )}
+
+      {/* ยืนยันการลบ */}
+      {historyDeleteId && (
+        <CenteredModal title="Delete Chat History?" onClose={() => setHistoryDeleteId(null)}>
+          <p className="mb-4 text-gray-700">Do you want to delete this chat from history?</p>
+          <div className="flex justify-end gap-2">
+            <button onClick={() => setHistoryDeleteId(null)} className="bg-gray-200 px-4 py-2 rounded">Cancel</button>
+            <button
+              onClick={() => {
+                setChats((prev) => prev.filter((chat) => chat.id !== historyDeleteId))
+                if (selectedChatId === historyDeleteId) {
+                  setSelectedChatId(null)
+                  setMessages([])
+                }
+                setHistoryDeleteId(null)
+              }}
+              className="bg-red-500 text-white px-4 py-2 rounded"
+            >
+              Delete
+            </button>
           </div>
         </CenteredModal>
       )}
