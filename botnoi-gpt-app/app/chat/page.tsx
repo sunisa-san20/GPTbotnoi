@@ -235,19 +235,34 @@ const [moveTargetFolder, setMoveTargetFolder] = useState("");
 const [isNewChat, setIsNewChat] = useState(false)
 // ส่งข้อความและตอบกลับ***จำลอง***
 const handleSendMessage = () => {
-  if (!newMessage.trim() || !selectedChatId) return;
+  if (!newMessage.trim()) return;
+
+  // ถ้ายังไม่มีแชทเลย ให้สร้างแชทใหม่ก่อนส่งข้อความ
+  if (!selectedChatId) {
+    const timestamp = Date.now();
+    const newChat: Chat = {
+      id: timestamp.toString(),
+      name: "New Chat",
+      createdAt: timestamp,
+      messages: [],
+    };
+    setChats((prev) => [newChat, ...prev]);
+    setSelectedChatId(newChat.id);
+  }
+
   const id = Date.now();
   const userMsg: Message = { id, text: newMessage, sender: "user" };
   const botMsg: Message = { id: id + 1, text: "🤖 ตอบกลับจากบอท (จำลอง)", sender: "bot" };
+
   setChats((prevChats) =>
     prevChats.map((chat) => {
       if (chat.id === selectedChatId) {
         const updatedMessages = [...chat.messages, userMsg, botMsg];
         return {
           ...chat,
-          name: chat.messages.length === 0 ? userMsg.text.slice(0, 30) : chat.name, // ตั้งชื่อจากข้อความแรก
+          name: chat.messages.length === 0 ? userMsg.text.slice(0, 30) : chat.name,
           messages: updatedMessages,
-          createdAt: Date.now(), // อัปเดตเวลาล่าสุด
+          createdAt: Date.now(),
         };
       }
       return chat;
@@ -256,7 +271,9 @@ const handleSendMessage = () => {
 
   setMessages((prev) => [...prev, userMsg, botMsg]);
   setNewMessage("");
+  setCurrentView("chat"); // เปลี่ยนเป็นหน้าแชทจริงหลังส่ง
 };
+
 
 // แนบไฟล์
 const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -371,6 +388,8 @@ const handleToggleMic = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">Display name</label>
             <input
               type="text"
+              name="chat-input"
+              autoComplete="off"
               placeholder="Enter Display Here"
               value={profileData.displayName}
               onChange={(e) => setProfileData({ ...profileData, displayName: e.target.value })}
@@ -382,6 +401,8 @@ const handleToggleMic = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">Profession</label>
             <input
               type="text"
+              name="chat-input"
+              autoComplete="off"
               placeholder="Enter Profession Here"
               value={profileData.profession}
               onChange={(e) => setProfileData({ ...profileData, profession: e.target.value })}
@@ -393,6 +414,8 @@ const handleToggleMic = () => {
             <label className="block text-sm font-medium text-gray-700 mb-2">Phone#</label>
             <input
               type="text"
+              name="chat-input"
+              autoComplete="off"
               placeholder="Enter Contact No. Here"
               value={profileData.phone}
               onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
@@ -544,7 +567,44 @@ const handleToggleMic = () => {
         </div>
         <span className="text-base font-medium text-gray-900">Botnoi GPT</span>
       </div>
-      <MoreVertical className="w-5 h-5 text-gray-400" />
+
+      {/* เมนูจุด 3 จุดแบบทำงานได้ */}
+      <div className="relative">
+        <button
+          onClick={() => setDropdownOpenId(dropdownOpenId === "chat-landing-menu" ? null : "chat-landing-menu")}
+          className="p-1 rounded hover:bg-gray-100"
+        >
+          <MoreVertical className="w-5 h-5 text-gray-400" />
+        </button>
+
+        {dropdownOpenId === "chat-landing-menu" && (
+          <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded shadow z-10">
+            <button className="w-full text-left px-4 py-2 hover:bg-gray-100">
+              Archive
+            </button>
+            <button
+              className="w-full text-left px-4 py-2 hover:bg-gray-100"
+              onClick={() => {
+                setDropdownOpenId(null);
+                setCurrentView("History");
+              }}
+            >
+              ⌛ History
+            </button>
+            <button
+              className="w-full text-left px-4 py-2 hover:bg-gray-100"
+              onClick={() => {
+                if (selectedChatId) {
+                  setShareChatId(selectedChatId);
+                  setDropdownOpenId(null);
+                }
+              }}
+            >
+              ➦ Share
+            </button>
+          </div>
+        )}
+      </div>
     </div>
 
     {/* Main Chat Content */}
@@ -696,6 +756,8 @@ const handleToggleMic = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Display name</label>
                 <input
                   type="text"
+                  name="chat-input"
+                  autoComplete="off"
                   placeholder="Enter Display Here"
                   value={profileData.displayName}
                   onChange={(e) => setProfileData({ ...profileData, displayName: e.target.value })}
@@ -708,6 +770,8 @@ const handleToggleMic = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Profession</label>
                 <input
                   type="text"
+                  name="chat-input"
+                  autoComplete="off"
                   placeholder="Enter Profession Here"
                   value={profileData.profession}
                   onChange={(e) => setProfileData({ ...profileData, profession: e.target.value })}
@@ -720,6 +784,8 @@ const handleToggleMic = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
                 <input
                   type="text"
+                  name="chat-input"
+                  autoComplete="off"
                   placeholder="Enter Contact No. Here"
                   value={profileData.phone}
                   onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
@@ -831,6 +897,8 @@ const handleToggleMic = () => {
               <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
               <input
                 type="text"
+                name="chat-input"
+                autoComplete="off"
                 placeholder="Search chat name"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
@@ -938,6 +1006,8 @@ const handleToggleMic = () => {
           <div className="mb-4">
             <input
               type="text"
+              name="chat-input"
+              autoComplete="off"
               placeholder="Search folders, chats, or keywords..."
               value={folderSearchKeyword}
               onChange={(e) => setFolderSearchKeyword(e.target.value)}
@@ -1040,6 +1110,8 @@ const handleToggleMic = () => {
           {/* Search */}
           <input
             type="text"
+            name="chat-input"
+            autoComplete="off"
             placeholder="Search chats or keywords..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -1155,6 +1227,8 @@ const handleToggleMic = () => {
             <label className="block text-sm font-medium mb-1">OR Create New Folder</label>
             <input
               type="text"
+              name="chat-input"
+              autoComplete="off"
               value={newFolderName}
               onChange={(e) => setNewFolderName(e.target.value)}
               placeholder="New folder name"
@@ -1242,6 +1316,8 @@ const handleToggleMic = () => {
         <CenteredModal title="Rename Folder" onClose={() => setFolderToRename(null)}>
           <input
             type="text"
+            name="chat-input"
+            autoComplete="off"
             className="w-full px-3 py-2 border rounded mb-4"
             placeholder="New folder name"
             value={newFolderNameTemp}
@@ -1291,6 +1367,8 @@ const handleToggleMic = () => {
         <CenteredModal title="Add New Folder" onClose={() => setShowAddFolderPopup(false)}>
           <input
             type="text"
+            name="chat-input"
+            autoComplete="off"
             placeholder="Folder name"
             className="w-full px-3 py-2 border rounded mb-4"
             value={newFolderName}
