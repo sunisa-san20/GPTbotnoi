@@ -233,45 +233,43 @@ const [moveTargetFolder, setMoveTargetFolder] = useState("");
 
 // ตรวจสอบว่าแชทที่เลือกคือ new chat
 const [isNewChat, setIsNewChat] = useState(false)
+
 // ส่งข้อความและตอบกลับ***จำลอง***
 const handleSendMessage = () => {
   if (!newMessage.trim()) return;
 
-  // ถ้ายังไม่มีแชทเลย ให้สร้างแชทใหม่ก่อนส่งข้อความ
-  if (!selectedChatId) {
-    const timestamp = Date.now();
+  const timestamp = Date.now();
+  let chatId = selectedChatId;
+
+  // ถ้ายังไม่มีแชท → สร้างแชทใหม่
+  if (!chatId) {
     const newChat: Chat = {
       id: timestamp.toString(),
-      name: "New Chat",
+      name: newMessage.slice(0, 30),
       createdAt: timestamp,
       messages: [],
     };
-    setChats((prev) => [newChat, ...prev]);
-    setSelectedChatId(newChat.id);
+    chatId = newChat.id;
+    setChats(prev => [newChat, ...prev]);
+    setSelectedChatId(chatId);
+    setMessages([]);
   }
 
   const id = Date.now();
   const userMsg: Message = { id, text: newMessage, sender: "user" };
-  const botMsg: Message = { id: id + 1, text: "🤖 ตอบกลับจากบอท (จำลอง)", sender: "bot" };
+  const botMsg: Message = { id: id + 1, text: "🤖 ตอบกลับจากบอท", sender: "bot" };
 
-  setChats((prevChats) =>
-    prevChats.map((chat) => {
-      if (chat.id === selectedChatId) {
-        const updatedMessages = [...chat.messages, userMsg, botMsg];
-        return {
-          ...chat,
-          name: chat.messages.length === 0 ? userMsg.text.slice(0, 30) : chat.name,
-          messages: updatedMessages,
-          createdAt: Date.now(),
-        };
-      }
-      return chat;
-    })
+  setChats(prevChats =>
+    prevChats.map(chat =>
+      chat.id === chatId
+        ? { ...chat, messages: [...chat.messages, userMsg, botMsg] }
+        : chat
+    )
   );
 
-  setMessages((prev) => [...prev, userMsg, botMsg]);
+  setMessages(prev => [...prev, userMsg, botMsg]);
   setNewMessage("");
-  setCurrentView("chat"); // เปลี่ยนเป็นหน้าแชทจริงหลังส่ง
+  setTimeout(() => setCurrentView("chat"), 100); // ❗ใส่ delay ให้ไม่เด้ง input
 };
 
 
@@ -539,9 +537,14 @@ const handleToggleMic = () => {
             autoComplete="off"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleSendMessage();
+              }
+            }}
             placeholder="Type a message..."
-            className="flex-1 px-3 py-2 bg-transparent border-none outline-none"
+            className="flex-1 px-3 py-2 bg-transparent border-none outline-none focus:outline-none"
           />
 
           <button onClick={handleToggleMic}>
@@ -650,9 +653,14 @@ const handleToggleMic = () => {
           autoComplete="off"
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleSendMessage();
+            }
+          }}
           placeholder="Type a message..."
-          className="flex-1 px-3 py-2 bg-transparent border-none outline-none"
+          className="flex-1 px-3 py-2 bg-transparent border-none outline-none focus:outline-none"
         />
 
         <button onClick={handleToggleMic}>
@@ -985,6 +993,7 @@ const handleToggleMic = () => {
         </div>
       )}
 
+      
       {/* Main Chat Area */}
       {currentView === "landing" && <ChatLanding />}
       {currentView === "chat" && <ChatView />}
@@ -1006,11 +1015,11 @@ const handleToggleMic = () => {
           <div className="mb-4">
             <input
               type="text"
-              name="chat-input"
+              name="folder-search"
               autoComplete="off"
-              placeholder="Search folders, chats, or keywords..."
               value={folderSearchKeyword}
               onChange={(e) => setFolderSearchKeyword(e.target.value)}
+              placeholder="Search folders, chats, or keywords..."
               className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-cyan-400"
             />
           </div>
@@ -1195,9 +1204,17 @@ const handleToggleMic = () => {
       {renameData && (
         <CenteredModal title="Rename Chat" onClose={() => setRenameData(null)}>
           <input
-            className="w-full border px-3 py-2 rounded mb-4"
-            value={renameData.name}
-            onChange={(e) => setRenameData({ ...renameData, name: e.target.value })}
+            type="text"
+            name="modal-input"
+            autoComplete="off"
+            value={renameData?.name || ""}
+            onChange={(e) =>
+              setRenameData((prev) =>
+                prev ? { ...prev, name: e.target.value } : null
+              )
+            }
+            placeholder="Enter new name"
+            className="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-cyan-400"
           />
           <div className="flex justify-end gap-2">
             <button onClick={() => setRenameData(null)} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Cancel</button>
