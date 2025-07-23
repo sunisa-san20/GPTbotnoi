@@ -483,8 +483,10 @@ const handleToggleMic = () => {
             className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-xs px-4 py-2 rounded-lg ${
-                message.sender === "user" ? "bg-cyan-500 text-white" : "bg-gray-200 text-gray-800"
+              className={`max-w-md px-5 py-3 text-base rounded-xl shadow ${
+                message.sender === "user"
+                  ? "bg-cyan-500 text-white"
+                  : "bg-gray-200 text-gray-800"
               }`}
             >
               {message.text}
@@ -501,16 +503,16 @@ const handleToggleMic = () => {
               <Plus className="w-5 h-5 text-gray-500 cursor-pointer hover:text-gray-700" />
             </button>
             {showAttachOptions && (
-              <div className="absolute bottom-10 left-0 w-36 bg-white border rounded shadow-md z-10">
-                <label className="block px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                  📎Attach file
-                  <input type="file" className="hidden" onChange={handleFileUpload} />
-                </label>
-                <label className="block px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                  🖼️ Attach photo
-                  <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
-                </label>
-              </div>
+              <div className="flex space-x-4 px-4 py-2">
+              <label className="flex items-center gap-2 cursor-pointer hover:underline text-sm text-gray-700 whitespace-nowrap">
+                📎 Attach file
+                <input type="file" className="hidden" onChange={handleFileUpload} />
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer hover:underline text-sm text-gray-700 whitespace-nowrap">
+                🖼️ Attach photo
+                <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
+              </label>
+            </div>
             )}
           </div>
 
