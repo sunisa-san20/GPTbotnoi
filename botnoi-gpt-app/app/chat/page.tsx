@@ -16,7 +16,7 @@ import {
   MoreVertical,
 } from "lucide-react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 // หน้า get start
 const BotnaiGPTIcon = () => (
@@ -131,6 +131,23 @@ const applyRename = () => {
     setRenameData(null)
   }
 }
+
+// State Popup แสดงข้อความพูด
+const [showMicPopup, setShowMicPopup] = useState(false);
+const [micText, setMicText] = useState("...");
+
+// 🎤 จำลองการพูดแบบ real-time
+useEffect(() => {
+  if (showMicPopup) {
+    const fakeTranscription = ["สวัสดีค่ะ", "ฉันอยากถามว่า...", "Botnoi คืออะไร"];
+    let i = 0;
+    const interval = setInterval(() => {
+      setMicText(fakeTranscription[i % fakeTranscription.length]);
+      i++;
+    }, 1500);
+    return () => clearInterval(interval);
+  }
+}, [showMicPopup]);
 
 // Save in Folder
 const [saveToFolderId, setSaveToFolderId] = useState<string | null>(null)
@@ -513,8 +530,8 @@ const handleToggleMic = () => {
             className="flex-1 px-3 py-2 bg-transparent border-none outline-none focus:outline-none"
           />
 
-          <button onClick={handleToggleMic}>
-            <Mic className={`w-5 h-5 ${isRecording ? "text-red-500" : "text-gray-500"}`} />
+          <button onClick={() => setShowMicPopup(true)}>
+            <Mic className={`w-5 h-5 text-gray-500`} />
           </button>
 
           <button onClick={handleSendMessage}>
@@ -629,9 +646,9 @@ const handleToggleMic = () => {
           className="flex-1 px-3 py-2 bg-transparent border-none outline-none focus:outline-none"
         />
 
-        <button onClick={handleToggleMic}>
-          <Mic className={`w-5 h-5 ${isRecording ? "text-red-500" : "text-gray-500"}`} />
-        </button>
+          <button onClick={() => setShowMicPopup(true)}>
+            <Mic className={`w-5 h-5 text-gray-500`} />
+          </button>
 
         <button onClick={handleSendMessage}>
           <Send className="w-5 h-5 text-cyan-500 cursor-pointer hover:text-cyan-600" />
@@ -1451,6 +1468,41 @@ const handleToggleMic = () => {
               className="px-4 py-2 bg-cyan-500 text-white rounded hover:bg-cyan-600"
             >
               Move
+            </button>
+          </div>
+        </CenteredModal>
+      )}
+
+      {/* เพิ่ม Popup ไมค์ */}
+      {showMicPopup && (
+        <CenteredModal title="🎙️ Voice Input" onClose={() => setShowMicPopup(false)}>
+          <div className="flex flex-col items-center justify-center space-y-4">
+            {/* ไมค์ใหญ่พร้อม effect */}
+            <div className="relative w-24 h-24">
+              <div className="absolute inset-0 animate-ping rounded-full bg-cyan-300 opacity-50"></div>
+              <div className="absolute inset-0 animate-pulse rounded-full bg-cyan-400 opacity-40"></div>
+              <div className="relative z-10 flex items-center justify-center w-24 h-24 bg-cyan-500 text-white rounded-full shadow-lg">
+                <Mic className="w-10 h-10" />
+              </div>
+            </div>
+
+            {/* ข้อความที่พูด */}
+            <div className="bg-gray-100 text-center px-4 py-2 rounded text-lg text-cyan-700 font-medium min-w-[200px]">
+              {micText}
+            </div>
+
+            <button
+              onClick={() => {
+                setMessages((prev) => [
+                  ...prev,
+                  { id: prev.length + 1, text: micText, sender: "user" },
+                  { id: prev.length + 2, text: "🤖 ตอบกลับจากเสียง", sender: "bot" },
+                ]);
+                setShowMicPopup(false);
+              }}
+              className="mt-4 px-4 py-2 bg-cyan-500 text-white rounded hover:bg-cyan-600"
+            >
+              Done
             </button>
           </div>
         </CenteredModal>
