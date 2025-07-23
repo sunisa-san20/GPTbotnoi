@@ -32,7 +32,7 @@ export default function SignUpPage() {
       {/* Left Side - Form */}
       <div className="flex-1 flex items-center justify-center p-8 bg-white">
         <div className="w-full max-w-md">
-          <h1 className="text-3xl font-bold text-gray-800 mb-8">Sign Up</h1>
+         <h1 className="text-4xl font-bold text-gray-600 mb-8 text-center">Sign Up</h1>
 
           <div className="space-y-6">
             <div>
@@ -80,7 +80,7 @@ export default function SignUpPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                 >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
                 </button>
               </div>
             </div>
@@ -99,16 +99,27 @@ export default function SignUpPage() {
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                 >
-                  {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  {showConfirmPassword ? <Eye size={20} /> : <EyeOff size={20} />}
                 </button>
               </div>
             </div>
 
-            <Button onClick={handleSignUp} className="w-full bg-cyan-500 hover:bg-cyan-600 text-white py-3">
+            <Button onClick={handleSignUp} className="w-full text-white py-3 hover:brightness-110 transition font-semibold"
+            style={{
+              background: 'linear-gradient(to right, #46BFFF, #75DEB4)',
+            }}
+          >
               Sign up
             </Button>
 
-            <Button variant="outline" className="w-full border-gray-300 text-gray-700 py-3 bg-transparent">
+            <Button 
+            className="w-full py-3
+                text-transparent bg-gradient-to-r from-[#46BFFF] to-[#75DEB4]
+                bg-clip-text rounded-lg
+                gradient-border
+                font-semibold
+                hover:brightness-110 hover:opacity-90
+                transition">
               Continue with Google
             </Button>
           </div>
@@ -116,12 +127,20 @@ export default function SignUpPage() {
       </div>
 
       {/* Right Side - Branding */}
-      <div className="flex-1 bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center p-8">
+       <div className="flex-1 flex items-center justify-center p-8 m-8 rounded-3xl"
+            style={{
+          background: 'linear-gradient(to top, #43A5DC, #D2FFFF)'
+        }}
+      >
         <div className="text-center text-white">
-          <div className="w-32 h-32 bg-white rounded-full shadow-lg flex items-center justify-center mb-6 mx-auto">
-            <div className="text-cyan-500 text-6xl">🤖</div>
+          <div className="w-40 h-40 bg-white rounded-full shadow-lg flex items-center justify-center mb-6 mx-auto">
+
+             <img 
+                src="logo-botnoi-2.png" 
+                alt="Botnoi Logo" 
+                className="w-55 h-55 object-contain" 
+              />
           </div>
-          <div className="text-cyan-100 font-bold text-lg mb-4">BOTNOI</div>
           <h2 className="text-4xl font-bold mb-4">Botnoi GPT</h2>
           <p className="text-cyan-100 text-lg">Ask Anything. Get Answers. Powered by Botnoi GPT.</p>
           <div className="flex justify-center space-x-2 mt-8">
