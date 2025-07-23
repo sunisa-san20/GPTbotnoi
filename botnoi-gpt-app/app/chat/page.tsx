@@ -202,9 +202,6 @@ const CenteredModal = ({
     <div className="bg-white rounded-lg w-[360px] max-w-full shadow-lg p-6">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-semibold">{title}</h3>
-        <button onClick={onClose}>
-          <X className="w-5 h-5 text-gray-500" />
-        </button>
       </div>
       {children}
     </div>
@@ -1034,23 +1031,32 @@ const handleToggleMic = () => {
                       .map((chat) => (
                         <div
                           key={chat.id}
-                          className="flex justify-between items-center bg-white px-3 py-2 rounded shadow"
+                          onClick={() => {
+                            setSelectedChatId(chat.id);
+                            setMessages(chat.messages);
+                            setCurrentView("chat");
+                          }}
+                          className="flex justify-between items-center bg-white px-3 py-2 rounded shadow hover:bg-gray-100 cursor-pointer"
                         >
                           <div>
-                            <div className="font-medium">{chat.name}</div>
+                            <div className="font-medium text-blue-600 hover:underline">{chat.name}</div>
                           </div>
                           <div className="flex space-x-2">
                             <button
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation(); // ป้องกันไม่ให้เปิดแชทตอนกด Move
                                 setMoveChatId(chat.id);
-                                setMoveTargetFolder(""); // reset dropdown
+                                setMoveTargetFolder("");
                               }}
                               className="text-blue-500 text-sm hover:underline"
                             >
                               📁 Move
                             </button>
                             <button
-                              onClick={() => setRemoveFromFolderId(chat.id)}
+                              onClick={(e) => {
+                                e.stopPropagation(); // ป้องกันไม่ให้เปิดแชทตอนกด Remove
+                                setRemoveFromFolderId(chat.id);
+                              }}
                               className="text-red-500 text-sm hover:underline"
                             >
                               🗑️ Remove
@@ -1112,26 +1118,24 @@ const handleToggleMic = () => {
                       key={chat.id}
                       className="bg-gray-100 p-3 rounded flex justify-between items-center hover:bg-gray-200"
                     >
-                      <div>
-                        <div className="font-medium truncate">{chat.name}</div>
-                        <div className="text-xs text-gray-500 truncate">
-                          {chat.messages.length > 0 ? chat.messages[chat.messages.length - 1].text.slice(0, 50) : ""}
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center justify-between bg-gray-100 p-3 rounded hover:bg-gray-200 w-full">
                         <div
                           onClick={() => {
                             setSelectedChatId(chat.id);
                             setMessages(chat.messages);
                             setCurrentView("chat");
                           }}
-                          className="font-medium truncate text-blue-600 cursor-pointer hover:underline"
+                          className="flex-1 cursor-pointer"
                         >
-                          {chat.name}
+                          <div className="font-medium truncate text-blue-600 hover:underline">{chat.name}</div>
+                          <div className="text-xs text-gray-500 truncate">
+                            {chat.messages.length > 0 ? chat.messages[chat.messages.length - 1].text.slice(0, 50) : ""}
+                          </div>
                         </div>
+
                         <button
                           onClick={() => setHistoryDeleteId(chat.id)}
-                          className="text-red-500 text-sm hover:underline"
+                          className="ml-auto text-red-500 text-sm hover:underline flex-shrink-0"
                         >
                           🗑️ Delete
                         </button>
