@@ -99,6 +99,6 @@ body {
     border-image-slice: 1;
     border-width: 2px;
     border-image-source: linear-gradient(to right, #46BFFF, #75DEB4);
-    border-radius: 0.2rem; /* เท่ากับ rounded-md ใน Tailwind */
+    border-radius: 1rem; /* เท่ากับ rounded-md ใน Tailwind */
   }
 }

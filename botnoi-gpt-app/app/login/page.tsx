@@ -53,7 +53,7 @@ export default function LoginPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
                 >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
                 </button>
               </div>
             </div>
@@ -81,11 +81,12 @@ export default function LoginPage() {
 
             <div className="text-center text-gray-500">or</div>
 
-            <Button
+           <Button
               className="
                 w-full py-3
                 text-transparent bg-gradient-to-r from-[#46BFFF] to-[#75DEB4]
-                bg-clip-text rounded-lg
+                bg-clip-text
+                rounded-2xl
                 gradient-border
                 font-semibold
                 hover:brightness-110 hover:opacity-90
