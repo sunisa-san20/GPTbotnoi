@@ -267,9 +267,22 @@ const handleSendMessage = () => {
     setMessages([]);
   }
 
-  const id = Date.now();
-  const userMsg: Message = { id, text: newMessage, sender: "user" };
-  const botMsg: Message = { id: id + 1, text: "🤖 ตอบกลับจากบอท", sender: "bot" };
+  if (chatId) {
+  const chat = chats.find(c => c.id === chatId);
+  if (chat && chat.name === "New Chat" && chat.messages.length === 0) {
+    //  เปลี่ยนชื่อแชทเป็นข้อความแรกที่ส่ง
+    setChats(prev =>
+      prev.map(c =>
+        c.id === chatId ? { ...c, name: newMessage.slice(0, 30) } : c
+      )
+    );
+  }
+}
+
+// เพิ่มข้อความ
+const id = Date.now();
+const userMsg: Message = { id, text: newMessage, sender: "user" };
+const botMsg: Message = { id: id + 1, text: "🤖 ตอบกลับจากบอท", sender: "bot" };
 
   setChats(prevChats =>
     prevChats.map(chat =>
@@ -281,7 +294,6 @@ const handleSendMessage = () => {
 
   setMessages(prev => [...prev, userMsg, botMsg]);
   setNewMessage("");
-  setTimeout(() => setCurrentView("chat"), 100); // ❗ใส่ delay ให้ไม่เด้ง input
 };
 
 
@@ -1245,7 +1257,7 @@ const handleToggleMic = () => {
                 if (!folders.includes(folderToUse)) {
                   setFolders((prev) => [...prev, folderToUse])
                 }
-
+                
                 setChats((prev) =>
                   prev.map((chat) =>
                     chat.id === saveToFolderId ? { ...chat, folder: folderToUse } : chat
